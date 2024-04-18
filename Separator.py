@@ -373,3 +373,71 @@ class Separator:
         self.__low_rank = (self.__U[:, :level + 1].reshape(self.__U.shape[0], level + 1) @
                            np.diag(self.__s[:level + 1]) @
                            self.__V[:level + 1, :].reshape(level + 1, self.__V.shape[1]))
+
+    @property
+    def video_name(self):
+        return self.__video_name
+
+    @property
+    def matrix_name(self):
+        return self.__matrix_name
+
+    @property
+    def clip(self):
+        return self.__clip
+
+    @property
+    def fps(self):
+        return self.__fps
+
+    @property
+    def start_second(self):
+        return self.__start_second
+
+    @property
+    def end_second(self):
+        return self.__end_second
+
+    @property
+    def scale(self):
+        return self.__scale
+
+    @property
+    def tag(self):
+        return self.__tag
+
+    @property
+    def place(self):
+        return self.__place
+
+    @property
+    def feature(self):
+        return self.__feature
+
+    @property
+    def matrix(self):
+        return self.__matrix
+
+    @property
+    def U(self):
+        return self.__U
+
+    @property
+    def s(self):
+        return self.__s
+
+    @property
+    def V(self):
+        return self.__V
+
+    @property
+    def low_rank(self):
+        return self.__low_rank
+
+    @property
+    def height(self):
+        return self.__height
+
+    @property
+    def width(self):
+        return self.__width
