@@ -4,12 +4,14 @@ from moviepy.editor import VideoFileClip, VideoClip
 import cv2 as cv
 import matplotlib.pyplot as plt
 from moviepy.video.io.bindings import mplfig_to_npimage
+import json
 
 
-class IncorrectName(Exception):
+class NameErrorException(Exception):
     """
     Raised the file or directory does not exist
     """
+
     def __init__(self, message):
         super().__init__(message)
 
@@ -18,6 +20,7 @@ class IncorrectDuration(Exception):
     """
     Raised when the problems connected to the video duration occur
     """
+
     def __init__(self, message):
         super().__init__(message)
 
@@ -26,6 +29,7 @@ class IncorrectFrame(Exception):
     """
     Raised when specific issues with video frames occur
     """
+
     def __init__(self, message):
         super().__init__(message)
 
@@ -33,9 +37,7 @@ class IncorrectFrame(Exception):
 class Separator:
     """
     Class which provides functionality on background and foreground separation
-    :param default_dims: Default dimensions of the output video. Used when dimensions are unknown
     """
-    default_dims = (1080, 1920)
 
     def __init__(self, video_name: str = None, matrix_name: str = None) -> None:
         """
@@ -43,87 +45,121 @@ class Separator:
         :param video_name:
         :param matrix_name:
         """
-        self.video_name = video_name
-        self.matrix_name = matrix_name
-        self.clip = None
-        self.fps = None
-        self.start_second = None
-        self.end_second = None
-        self.scale = None
-        self.tag = None
-        self.place = None
-        self.feature = None
-        self.matrix = None
-        self.U = None
-        self.s = None
-        self.V = None
-        self.dims = None
-        self.low_rank = None
+        self.__video_name = video_name
+        self.__matrix_name = matrix_name
+        self.__clip = None
+        self.__fps = None
+        self.__start_second = None
+        self.__end_second = None
+        self.__scale = None
+        self.__tag = None
+        self.__place = None
+        self.__feature = None
+        self.__matrix = None
+        self.__U = None
+        self.__s = None
+        self.__V = None
+        self.__low_rank = None
+        self.__height = None
+        self.__width = None
 
     def __grab_video_details(self):
         """
         Gather essential characteristics of the video
         :return:
         """
-        if self.video_name is None:
-            raise IncorrectName("The video was not specified")
+        if self.__video_name is None:
+            raise NameErrorException("The video was not specified")
 
         print('Specify video characteristics: ')
-        start_second = float(input('Start second: '))
-        end_second = float(input('End second: '))
+        start_second = int(input('Start second: '))
+        end_second = int(input('End second: '))
 
         if start_second < 0 or end_second < 0:
             raise IncorrectDuration("Time must be positive")
 
-        if start_second < end_second:
+        if end_second < start_second:
             raise IncorrectDuration("Starting second must be lower than ending second")
-        video = VideoFileClip(self.video_name)
+
+        video = VideoFileClip(f'./video/{self.__video_name}')
+        self.__clip = video
         if end_second > video.duration:
             end_second = video.duration
 
-        self.start_second = start_second
-        self.end_second = end_second
-        self.scale = float(input('Scale'))
-        self.tag = input('Tag: ')
-        self.place = input('Place: ')
-        self.feature = input('Feature')
+        self.__clip = self.__clip.subclip(start_second, end_second)
 
-        self.fps = self.clip.fps
-        self.dims = self.clip.size[0] * self.scale / 100, self.clip.size[1] * self.scale / 100
+        self.__start_second = start_second
+        self.__end_second = end_second
+        self.__scale = int(input('Scale: '))
+        self.__tag = input('Tag: ')
+        self.__place = input('Place: ')
+        self.__feature = input('Feature: ')
 
-    def open(self, matrix_name: str = None, video_name: str = None):
+        self.__fps = int(self.__clip.fps)
+        self.__width = int(self.__clip.size[1] * self.__scale / 100)
+        self.__height = int(self.__clip.size[0] * self.__scale / 100)
+        self.__matrix_name = f'{self.__tag}_{self.__place}_{self.__feature}_{self.__scale}_{self.__start_second}_{self.__end_second}_{self.__width}_{self.__height}.npy'
+        data = dict()
+        data['video_name'] = self.__video_name
+        data['matrix_name'] = self.__matrix_name
+        data['start_second'] = self.__start_second
+        data['end_second'] = self.__end_second
+        data['scale'] = self.__scale
+        data['tag'] = self.__tag
+        data['place'] = self.__place
+        data['feature'] = self.__feature
+        data['fps'] = self.__fps
+        data['width'] = self.__width
+        data['height'] = self.__height
+        with open(f'./matrices_data/{self.__matrix_name[:-4]}.json', 'w') as file:
+            json.dump(data, file, indent=4)
+        print('Video details grabbed...')
+
+    def load_json(self, json_file: str):
+        if '.json' not in json_file:
+            json_file = json_file + '.json'
+        data = json.load(open(f'./matrices_data/{json_file}', 'r'))
+        self.__video_name = data['video_name']
+        self.__matrix_name = data['matrix_name']
+        self.__start_second = data['start_second']
+        self.__end_second = data['end_second']
+        self.__scale = data['scale']
+        self.__tag = data['tag']
+        self.__place = data['place']
+        self.__feature = data['feature']
+        self.__fps = data['fps']
+        self.__width = data['width']
+        self.__height = data['height']
+
+    def open(self, video_name: str = None):
         """
         Visualises background according to the provided video or matrix name. Checks whether such video or matrix exists
-        :param matrix_name: name of the matrix
         :param video_name: name of the video
         :return:
         """
-        if matrix_name is None and video_name is None:
-            raise IncorrectName("There aren't any materials provided")
+        if self.__matrix_name is None and video_name is None:
+            raise NameErrorException("There aren't any materials provided")
 
-        if matrix_name is not None:
-            if self.__check_matrix(matrix_name):
-                self.matrix = np.load(matrix_name)
+        if self.__matrix_name is not None:
+            if self.__check_matrix(self.__matrix_name):
+                self.__matrix = np.load('./video_matrix/' + self.__matrix_name)
                 self.__perform_svd(True, 1, 1, 5)
-                self.display_background()
                 return
 
         if video_name is not None:
             if self.__check_video(video_name):
-                self.video_name = video_name
+                self.__video_name = video_name
                 self.__grab_video_details()
-                self.matrix_name = f'{self.tag}_{self.place}_{self.feature}_{self.scale}_{self.start_second}_{self.end_second}.npy'
 
-                if self.__check_matrix(matrix_name):
-                    self.matrix = np.load(matrix_name)
+                if self.__check_matrix(self.__matrix_name):
+                    self.__matrix = np.load('./video_matrix/' + self.__matrix_name)
                 else:
                     self.__construct_matrix_from_video()
 
                 self.__perform_svd(True, 1, 1, 5)
-                self.display_background()
                 return
 
-        raise IncorrectName("There aren't any materials found")
+        raise NameErrorException("There aren't any materials found")
 
     def __check_matrix(self, matrix_name: str) -> bool:
         """
@@ -139,7 +175,7 @@ class Separator:
         if matrix_name not in matrices:
             return False
 
-        self.matrix_name = matrix_name
+        self.__matrix_name = matrix_name
         return True
 
     @staticmethod
@@ -156,23 +192,23 @@ class Separator:
         Creates matrix out of the video. Takes each from and flattens it according to the output dimensions
         :return:
         """
+        print('Started matrix construction...')
         frames = []
-        for i in range(self.fps * int(self.clip.duration)):
-            frame = self.clip.get_frame(self.fps)
+        duration = int(self.__clip.duration)
+        for i in range(self.__fps * duration):
+            frame = self.__clip.get_frame(i / float(self.__fps))
+            frame = self.__rgb2gray(frame)
+            frame = cv.resize(frame, (self.__height, self.__width))
+            frame = frame.astype(np.uint8)
+            frames.append(frame.flatten())
+        self.__matrix = np.vstack(frames).T
+        plt.imshow(np.reshape(self.__matrix[:, 1000], (270, 480)), cmap='gray')
+        plt.show()
+        np.save(f'./video_matrix/{self.__matrix_name[:-4]}', self.__matrix)
+        print('Matrix constructed...')
 
-            gray_frame = self.__rgb2gray(frame).astype(np.uint8)
-
-            if self.dims is None:
-                self.dims = (Separator.default_dims[0] * 0.25, Separator.default_dims[1] * 0.25)
-
-            resized_frame = cv.resize(gray_frame, self.dims)
-
-            frames.append(resized_frame.flatten())
-
-            self.matrix = np.vstack(frames).T
-            np.save(f'./video_matrix/{self.matrix_name}', self.matrix)
-
-    def __check_video(self, video_name: str) -> bool:
+    @staticmethod
+    def __check_video(video_name: str) -> bool:
         """
         Checks whether such video exists
         :param video_name:
@@ -192,40 +228,47 @@ class Separator:
         :param p: oversampling parameter for Randomized SVD
         :return:
         """
+        print('Started SVD application...')
         svd_results = os.listdir('./svd_results')
-        if f'U_{self.matrix_name}' in svd_results and f'V_{self.matrix_name}' in svd_results and f's_{self.matrix_name}' in svd_results:
-            self.U = np.load(f'./svd_results/U_{self.matrix_name}')
-            self.s = np.load(f'./svd_results/s_{self.matrix_name}')
-            self.V = np.load(f'./svd_results/V_{self.matrix_name}')
-
         if rsvd:
-            self.U, self.s, self.V = self.__randomized_svd(r, q, p)
+            if f'U_rsvd_{self.__matrix_name}' in svd_results and f'V_rsvd_{self.__matrix_name}' in svd_results and f's_rsvd_{self.__matrix_name}' in svd_results:
+                self.__U = np.load(f'./svd_results/U_rsvd_{self.__matrix_name}')
+                self.__s = np.load(f'./svd_results/s_rsvd_{self.__matrix_name}')
+                self.__V = np.load(f'./svd_results/V_rsvd_{self.__matrix_name}')
+            else:
+                self.__U, self.__s, self.__V = self.__randomized_svd(r, q, p)
+                np.save(f'./svd_results/U_rsvd_{self.__matrix_name}', self.__U)
+                np.save(f'./svd_results/s_rsvd_{self.__matrix_name}', self.__s)
+                np.save(f'./svd_results/V_rsvd_{self.__matrix_name}', self.__V)
         else:
-            self.U, self.s, self.V = np.linalg.svd(self.matrix, full_matrices=False)
+            if f'U_fsvd_{self.__matrix_name}' in svd_results and f'V_fsvd_{self.__matrix_name}' in svd_results and f's_fsvd_{self.__matrix_name}' in svd_results:
+                self.__U = np.load(f'./svd_results/U_fsvd_{self.__matrix_name}')
+                self.__s = np.load(f'./svd_results/s_fsvd_{self.__matrix_name}')
+                self.__V = np.load(f'./svd_results/V_fsvd_{self.__matrix_name}')
+            else:
+                self.__U, self.__s, self.__V = np.linalg.svd(self.__matrix, full_matrices=False)
+                np.save(f'./svd_results/U_fsvd_{self.__matrix_name}', self.__U)
+                np.save(f'./svd_results/s_fsvd_{self.__matrix_name}', self.__s)
+                np.save(f'./svd_results/V_fsvd_{self.__matrix_name}', self.__V)
 
-        np.save(f'./svd_results/U_{self.matrix_name}', self.U)
-        np.save(f'./svd_results/s_{self.matrix_name}', self.s)
-        np.save(f'./svd_results/V_{self.matrix_name}', self.V)
-        self.__low_rank_approx(self, 0)
-
-    def __low_rank_approx(self, level):
-        """
-        Provides low-rank approximation of the matrix
-        :param level: Responsible for the desired rank of the matrix approximation
-        :return:
-        """
-        if level > self.U.shape[0]:
-            level = self.U.shape[0]
-        self.low_rank = (self.U[:, :level + 1].reshape(self.U.shape[0], level + 1) @
-                         np.diag(self.s[:level + 1]) @
-                         self.V[:level + 1, :].reshape(level + 1, self.V.shape[0]))
+        self.__low_rank_approx(0)
+        print('SVD performed...')
 
     def display_background(self):
         """
         Displays the background of the video which is a static part
         :return:
         """
-        plt.imshow(self.low_rank[:, 0].reshape(self.dims), cmap='gray')
+        if self.__video_name is None and self.__matrix_name is None:
+            raise NameErrorException('Please provide materials')
+
+        if self.__video_name is None and self.__matrix_name is not None or self.__matrix_name is not None and self.__video_name is not None:
+            self.open()
+
+        if self.__matrix_name is None and self.__video_name is not None:
+            self.open(video_name=self.__video_name)
+
+        plt.imshow(self.__low_rank[:, 0].reshape(self.__width, self.__height), cmap='gray')
         plt.show()
 
     def display_foreground(self, frame):
@@ -234,9 +277,24 @@ class Separator:
         :param frame: particular frame of the video
         :return:
         """
-        if frame > self.matrix.shape[1] or frame < self.matrix.shape[1]:
-            raise IncorrectFrame('There is no such frame')
-        plt.imshow(np.reshape(self.matrix[:, frame] - self.low_rank[:, 0], self.dims), cmap='gray')
+        if self.__video_name is None and self.__matrix_name is None:
+            raise NameErrorException('Please provide materials')
+
+        if self.__video_name is None and self.__matrix_name is not None or self.__matrix_name is not None and self.__video_name is not None:
+            self.open()
+
+        if self.__matrix_name is None and self.__video_name is not None:
+            self.open(video_name=self.__video_name)
+
+        if frame > self.__matrix.shape[1]:
+            frame = self.__matrix.shape[1]
+        if frame < 0:
+            frame = 0
+        plt.imshow(np.reshape(self.__matrix[:, frame], (self.__width, self.__height)), cmap='gray')
+        plt.show()
+
+        plt.imshow(np.reshape(self.__matrix[:, frame] - self.__low_rank[:, 0], (self.__width, self.__height)),
+                   cmap='gray')
         plt.show()
 
     def create_video_without_background(self):
@@ -244,19 +302,32 @@ class Separator:
         Creates video without background. Also checks whether such video already exists
         :return:
         """
+        if self.__video_name is None and self.__matrix_name is None:
+            raise NameErrorException('Please provide materials')
+
+        if self.__video_name is None and self.__matrix_name is not None or self.__matrix_name is not None and self.__video_name is not None:
+            self.open()
+
+        if self.__matrix_name is None and self.__video_name is not None:
+            self.open(video_name=self.__video_name)
+
         if self.__check_video_nobg():
             return
-        mat_reshaped = np.reshape(self.matrix, (self.dims[0], self.dims[1], -1))
+
+        if self.__clip is None:
+            self.__clip = VideoFileClip(f'./video/{self.__video_name}').subclip(self.__start_second, self.__end_second)
+
+        mat_reshaped = np.reshape(self.__matrix - self.__low_rank, (self.__width, self.__height, -1))
 
         fig, ax = plt.subplots()
 
         def make_frame(t):
             ax.clear()
-            ax.imshow(mat_reshaped[..., int(t * self.fps)])
+            ax.imshow(mat_reshaped[..., int(t * self.__fps)])
             return mplfig_to_npimage(fig)
 
-        animation = VideoClip(make_frame, duration=int(self.clip.duration))
-        animation.write_videofile(f'./video_without_background/{self.matrix_name}.mp4', fps=self.fps)
+        animation = VideoClip(make_frame, duration=int(self.__clip.duration))
+        animation.write_videofile(f'./video_without_background/{self.__matrix_name[:-4]}' + '.mp4', fps=self.__fps)
 
     def __check_video_nobg(self):
         """
@@ -264,7 +335,7 @@ class Separator:
         :return: The result as boolean type
         """
         video_no_bg = os.listdir('./video_without_background')
-        if self.matrix_name not in video_no_bg:
+        if self.__matrix_name not in video_no_bg:
             return False
         return True
 
@@ -277,16 +348,28 @@ class Separator:
         :return: matrices obtained by the randomized SVD
         """
 
-        ny = self.matrix.shape[1]
+        ny = self.__matrix.shape[1]
         P = np.random.randn(ny, r + p)
-        Z = self.matrix @ P
+        Z = self.__matrix @ P
         for k in range(q):
-            Z = self.matrix @ (self.matrix.T @ Z)
+            Z = self.__matrix @ (self.__matrix.T @ Z)
 
         Q, R = np.linalg.qr(Z, mode='reduced')
 
-        Y = Q.T @ self.matrix
+        Y = Q.T @ self.__matrix
         UY, S, V = np.linalg.svd(Y, full_matrices=False)
         U = Q @ UY
 
         return U, S, V
+
+    def __low_rank_approx(self, level: int = 0):
+        """
+        Provides low-rank approximation of the matrix
+        :param level: Responsible for the desired rank of the matrix approximation
+        :return:
+        """
+        if level > self.__U.shape[0]:
+            level = self.__U.shape[0]
+        self.__low_rank = (self.__U[:, :level + 1].reshape(self.__U.shape[0], level + 1) @
+                           np.diag(self.__s[:level + 1]) @
+                           self.__V[:level + 1, :].reshape(level + 1, self.__V.shape[1]))
