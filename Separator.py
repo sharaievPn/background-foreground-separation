@@ -82,9 +82,10 @@ class Separator:
             raise IncorrectDuration("Starting second must be lower than ending second")
 
         video = VideoFileClip(f'./video/{self.__video_name}')
+        vid = cv.VideoCapture(f'./video/{self.__video_name}')
         self.__clip = video
         if end_second > video.duration:
-            end_second = video.duration
+            end_second = int(video.duration)
 
         self.__clip = self.__clip.subclip(start_second, end_second)
 
@@ -96,8 +97,8 @@ class Separator:
         self.__feature = input('Feature: ')
 
         self.__fps = int(self.__clip.fps)
-        self.__width = int(self.__clip.size[1] * self.__scale / 100)
-        self.__height = int(self.__clip.size[0] * self.__scale / 100)
+        self.__width = int(int(vid.get(cv.CAP_PROP_FRAME_WIDTH)) * self.__scale / 100)
+        self.__height = int(int(vid.get(cv.CAP_PROP_FRAME_HEIGHT)) * self.__scale / 100)
         self.__matrix_name = f'{self.__tag}_{self.__place}_{self.__feature}_{self.__scale}_{self.__start_second}_{self.__end_second}_{self.__width}_{self.__height}.npy'
         data = dict()
         data['video_name'] = self.__video_name
@@ -198,12 +199,10 @@ class Separator:
         for i in range(self.__fps * duration):
             frame = self.__clip.get_frame(i / float(self.__fps))
             frame = self.__rgb2gray(frame)
-            frame = cv.resize(frame, (self.__height, self.__width))
+            frame = cv.resize(frame, (self.__width, self.__height))
             frame = frame.astype(np.uint8)
             frames.append(frame.flatten())
         self.__matrix = np.vstack(frames).T
-        plt.imshow(np.reshape(self.__matrix[:, 1000], (270, 480)), cmap='gray')
-        plt.show()
         np.save(f'./video_matrix/{self.__matrix_name[:-4]}', self.__matrix)
         print('Matrix constructed...')
 
@@ -268,7 +267,7 @@ class Separator:
         if self.__matrix_name is None and self.__video_name is not None:
             self.open(video_name=self.__video_name)
 
-        plt.imshow(self.__low_rank[:, 0].reshape(self.__width, self.__height), cmap='gray')
+        plt.imshow(self.__low_rank[:, 0].reshape(self.__height, self.__width), cmap='gray')
         plt.show()
 
     def display_foreground(self, frame):
@@ -287,13 +286,13 @@ class Separator:
             self.open(video_name=self.__video_name)
 
         if frame > self.__matrix.shape[1]:
-            frame = self.__matrix.shape[1]
+            frame = self.__matrix.shape[1] - 1
         if frame < 0:
             frame = 0
-        plt.imshow(np.reshape(self.__matrix[:, frame], (self.__width, self.__height)), cmap='gray')
+        plt.imshow(np.reshape(self.__matrix[:, frame], (self.__height, self.__width)), cmap='gray')
         plt.show()
 
-        plt.imshow(np.reshape(self.__matrix[:, frame] - self.__low_rank[:, 0], (self.__width, self.__height)),
+        plt.imshow(np.reshape(self.__matrix[:, frame] - self.__low_rank[:, 0], (self.__height, self.__width)),
                    cmap='gray')
         plt.show()
 
@@ -317,7 +316,7 @@ class Separator:
         if self.__clip is None:
             self.__clip = VideoFileClip(f'./video/{self.__video_name}').subclip(self.__start_second, self.__end_second)
 
-        mat_reshaped = np.reshape(self.__matrix - self.__low_rank, (self.__width, self.__height, -1))
+        mat_reshaped = np.reshape(self.__matrix - self.__low_rank, (self.__height, self.__width, -1))
 
         fig, ax = plt.subplots()
 
@@ -335,7 +334,7 @@ class Separator:
         :return: The result as boolean type
         """
         video_no_bg = os.listdir('./video_without_background')
-        if self.__matrix_name not in video_no_bg:
+        if f'{self.__matrix_name[:-4]}.mp4' not in video_no_bg:
             return False
         return True
 
