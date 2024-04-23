@@ -76,8 +76,41 @@ There is also a feature to load data from json, but it will work only when the v
 separator.load_json("file.json")
 ```
 
+## First time initialization
+If the initialization is performed for the first, meaning the video is loaded for the first time, then you should specify characteristics of the video (note: it is not required while loading data through json, but it is required using any other methods).
+The characteristics are: 
+1) Start second (for subclip)
+2) End second (for subclip)
+3) scale - factor to make the subclip of smaller size
+Important: scale factor of 100 represents the full size of the video
+4) Tag - represents environemnt where the video has been shot
+5) Place - specific place like room name, location name (for example, stairs)
+6) Feature - what is the featuring element of the video
+
+All other characteristics will be calculated by the program
+
+Input example:
+
+<img width="272" alt="image" src="https://github.com/sharaievPn/background-foreground-separation/assets/116552240/4de09fec-c687-4d67-9fec-bf7793a9a50e">
+
 ## Functionality
 
+1) Display background
+```python
+separator.display_background()
+```
+Displays background of the video sample
+
+2) Display foreground
+```python
+separator.display_foreground(second)
+```
+To display foreground provide the specific second you would like to display the frame of. As a result will be displayed a specific frame and separated foreground
+
+3) Create a video without background
+```python
+separator.create_video_without_background()
+```
 
 ## Contributing
 
