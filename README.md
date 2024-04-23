@@ -34,13 +34,14 @@ https://github.com/sharaievPn/background-foreground-separation/assets/116552240/
 
 ## Requirments
 The algorithms use different packages which may be installed through command line. 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install required packages.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install required packages. Run the commands in command line in directory where the Separator.py is located.
 
 ```bash
 pip install numpy
 pip install moviepy
 pip install opencv-python
 pip install matplotlib
+pip install ffmpeg-python
 ```
 
 Also ensure there are such directories like 
