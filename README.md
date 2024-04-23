@@ -13,6 +13,16 @@ Before application of any algorithm, video should be correctly preprocessed. To 
 
 As one can see, there are some black lines along the horizontal axes. Such diffrence represents the moving objects that are present on the particular video frame.
 
+## Idea Behind Background Approximation
+
+To obtaine the best background approximation model it is appropriate to constuct a rank-1 approximation of the matrix. Since singular values are in descending order, then the product of first singular value and its corresponding singular vectors forms a matrix each column of which represents dominant pattern for each particular frame. Taking into account that background is static, then the dominant pattern formed by the product of the first singular value and its corresponding singular vectors represents models background.
+
+## Example of Background Model
+
+![low_rank_representation](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/6f0e43b1-4d4f-4a2e-815d-14f9758173fb)
+
+It is clearly visible that black lines representing the movements are excluded.
+
 ## Usage
 
 ```python
