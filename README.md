@@ -32,21 +32,52 @@ The dataset including video samples was constructed by the team. Here are the ax
 Composed Video:
 https://github.com/sharaievPn/background-foreground-separation/assets/116552240/96d6369f-2228-4d2b-a662-93f1c1089e4f
 
+## Requirments
+The algorithms use different packages which may be installed through command line. 
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install required packages.
+
+```bash
+pip install numpy
+pip install moviepy
+pip install opencv-python
+pip install matplotlib
+```
+
+Also ensure there are such directories like 
+```bash
+video
+matrices_data
+svd_results
+video_matrix
+video_without_background
+```
 
 ## Usage
+The main class is Separator which should be imported.
 
 ```python
-import foobar
-
-# returns 'words'
-foobar.pluralize('word')
-
-# returns 'geese'
-foobar.pluralize('goose')
-
-# returns 'phenomenon'
-foobar.singularize('phenomena')
+from Separator import Separator
 ```
+
+The object of the class may be created parametrized or unparametrized, where parameter is the name of the video sample.
+```python
+separator = Separator('Video.MOV')
+```
+
+```python
+separator = Separator()
+```
+
+Are both correct ways to initialize an onbject of the class.
+
+There is also a feature to load data from json, but it will work only when the video was once processed.
+
+```python
+separator.load_json("file.json")
+```
+
+## Functionality
+
 
 ## Contributing
 
