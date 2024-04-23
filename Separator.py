@@ -39,14 +39,14 @@ class Separator:
     Class which provides functionality on background and foreground separation
     """
 
-    def __init__(self, video_name: str = None, matrix_name: str = None) -> None:
+    def __init__(self, video_name: str = None) -> None:
         """
 
         :param video_name:
         :param matrix_name:
         """
         self.__video_name = video_name
-        self.__matrix_name = matrix_name
+        self.__matrix_name = None
         self.__clip = None
         self.__fps = None
         self.__start_second = None
@@ -62,6 +62,7 @@ class Separator:
         self.__low_rank = None
         self.__height = None
         self.__width = None
+        self.__duration = None
 
     def __grab_video_details(self):
         """
@@ -88,6 +89,7 @@ class Separator:
             end_second = int(video.duration)
 
         self.__clip = self.__clip.subclip(start_second, end_second)
+        self.__duration = self.__clip.duration
 
         self.__start_second = start_second
         self.__end_second = end_second
@@ -112,6 +114,7 @@ class Separator:
         data['fps'] = self.__fps
         data['width'] = self.__width
         data['height'] = self.__height
+        data['duration'] = self.__duration
         with open(f'./matrices_data/{self.__matrix_name[:-4]}.json', 'w') as file:
             json.dump(data, file, indent=4)
         print('Video details grabbed...')
@@ -131,6 +134,7 @@ class Separator:
         self.__fps = data['fps']
         self.__width = data['width']
         self.__height = data['height']
+        self.__duration = data['duration']
 
     def open(self, video_name: str = None):
         """
@@ -144,7 +148,7 @@ class Separator:
         if self.__matrix_name is not None:
             if self.__check_matrix(self.__matrix_name):
                 self.__matrix = np.load('./video_matrix/' + self.__matrix_name)
-                self.__perform_svd(True, 1, 1, 5)
+                self.__perform_svd(True, 1, 2, 10)
                 return
 
         if video_name is not None:
@@ -157,7 +161,7 @@ class Separator:
                 else:
                     self.__construct_matrix_from_video()
 
-                self.__perform_svd(True, 1, 1, 5)
+                self.__perform_svd(True, 1, 2, 10)
                 return
 
         raise NameErrorException("There aren't any materials found")
@@ -190,7 +194,7 @@ class Separator:
 
     def __construct_matrix_from_video(self):
         """
-        Creates matrix out of the video. Takes each from and flattens it according to the output dimensions
+        Creates matrix out of the video. Takes each frame and flattens it according to the output dimensions
         :return:
         """
         print('Started matrix construction...')
@@ -267,10 +271,15 @@ class Separator:
         if self.__matrix_name is None and self.__video_name is not None:
             self.open(video_name=self.__video_name)
 
-        plt.imshow(self.__low_rank[:, 0].reshape(self.__height, self.__width), cmap='gray')
+        plt.imshow(self.__low_rank.mean(1).reshape(self.__height, self.__width), cmap='gray')
+        plt.axis('off')
+        plt.gca().set_facecolor('none')
+        plt.gcf().patch.set_facecolor('none')
+        plt.gcf().patch.set_alpha(0)
+        plt.savefig(f'{self.__matrix_name[:-4]}_background.png')
         plt.show()
 
-    def display_foreground(self, frame):
+    def display_foreground(self, second: int):
         """
         Displays foreground of particular frame of the video
         :param frame: particular frame of the video
@@ -285,15 +294,32 @@ class Separator:
         if self.__matrix_name is None and self.__video_name is not None:
             self.open(video_name=self.__video_name)
 
+        if second > self.__duration:
+            second = self.__duration
+        if second < 0:
+            second = 0
+
+        frame = second * self.__fps
         if frame > self.__matrix.shape[1]:
             frame = self.__matrix.shape[1] - 1
         if frame < 0:
             frame = 0
+
         plt.imshow(np.reshape(self.__matrix[:, frame], (self.__height, self.__width)), cmap='gray')
+        plt.axis('off')
+        plt.gca().set_facecolor('none')
+        plt.gcf().patch.set_facecolor('none')
+        plt.gcf().patch.set_alpha(0)
+        plt.savefig(f'{self.__matrix_name[:-4]}_second.png')
         plt.show()
 
-        plt.imshow(np.reshape(self.__matrix[:, frame] - self.__low_rank[:, 0], (self.__height, self.__width)),
+        plt.imshow(np.reshape(self.__matrix[:, frame] - self.__low_rank[:, frame], (self.__height, self.__width)),
                    cmap='gray')
+        plt.axis('off')
+        plt.gca().set_facecolor('none')
+        plt.gcf().patch.set_facecolor('none')
+        plt.gcf().patch.set_alpha(0)
+        plt.savefig(f'{self.__matrix_name[:-4]}_foreground.png')
         plt.show()
 
     def create_video_without_background(self):
@@ -322,7 +348,8 @@ class Separator:
 
         def make_frame(t):
             ax.clear()
-            ax.imshow(mat_reshaped[..., int(t * self.__fps)])
+            ax.imshow(mat_reshaped[..., int(t * self.__fps)], cmap='gray')
+            ax.axis('off')
             return mplfig_to_npimage(fig)
 
         animation = VideoClip(make_frame, duration=int(self.__clip.duration))
@@ -349,14 +376,18 @@ class Separator:
 
         ny = self.__matrix.shape[1]
         P = np.random.randn(ny, r + p)
-        Z = self.__matrix @ P
+
+        for i in range(len(P[0, :])):
+            P[:, i] = P[:, i] / np.linalg.norm(P[:, i])
+
+        Y = self.__matrix @ P
         for k in range(q):
-            Z = self.__matrix @ (self.__matrix.T @ Z)
+            Y = self.__matrix @ (self.__matrix.T @ Y)
 
-        Q, R = np.linalg.qr(Z, mode='reduced')
+        Q, R = np.linalg.qr(Y, mode='reduced')
 
-        Y = Q.T @ self.__matrix
-        UY, S, V = np.linalg.svd(Y, full_matrices=False)
+        B = Q.T @ self.__matrix
+        UY, S, V = np.linalg.svd(B, full_matrices=False)
         U = Q @ UY
 
         return U, S, V
