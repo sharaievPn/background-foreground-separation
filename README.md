@@ -76,7 +76,7 @@ There is also a feature to load data from json, but it will work only when the v
 separator.load_json("file.json")
 ```
 
-## First time initialization
+## First Time Initialization
 If the initialization is performed for the first, meaning the video is loaded for the first time, then you should specify characteristics of the video (note: it is not required while loading data through json, but it is required using any other methods).
 The characteristics are: 
 1) Start second (for subclip)
