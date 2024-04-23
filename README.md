@@ -113,4 +113,28 @@ separator.create_video_without_background()
 ```
 
 ## More Results
+![k2_stairs_freshman_25_5_26_270_480_second](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/783b0394-2c09-49a6-9c35-ac7904f7cfc3)
+![k2_stairs_freshman_25_5_26_270_480_background](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/81319f44-bc6c-4d32-ae9a-1e2a3a3ae0dc)
+![k2_stairs_freshman_25_5_26_270_480_foreground](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/f12781f3-ef4e-476c-8317-0c5c2f14147c)
+
+![ts_stairs_man_25_0_18_270_480_second](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/38002f7f-6737-4353-b970-6d1506d75198)
+![ts_stairs_man_25_0_18_270_480_background](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/c69bc2b6-25be-4d8f-a852-183c1067bd89)
+![ts_stairs_man_25_0_18_270_480_foreground](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/7f978e4f-d57d-4a9f-bc6a-24d3a55fb1d6)
+
+Video: https://github.com/sharaievPn/background-foreground-separation/assets/116552240/222b6029-b7a9-4d70-8046-212114e5bb3e
+
+![ts_second-floor_elevator_25_60_110_480_270_second](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/c57e51fa-0281-4285-a896-c454e3467334)
+![ts_second-floor_elevator_25_60_110_480_270_background](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/6dff66b4-c781-4f63-812d-9f3088635dda)
+![ts_second-floor_elevator_25_60_110_480_270_foreground](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/ce102fda-9374-4622-9fde-9f1b81a74c36)
+
+Video:  https://github.com/sharaievPn/background-foreground-separation/assets/116552240/45813347-6fd6-4fb9-aa6a-9c84b22a17f0
+
+![ts_stairs_wall_25_30_90_480_270_second](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/4f89e413-ac52-45f0-a3c0-3d515fbb284d)
+![ts_stairs_wall_25_30_90_480_270_background](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/d7fdba51-010a-487d-aa65-c70676db1a90)
+![ts_stairs_wall_25_30_90_480_270_foreground](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/68015af5-feb8-48aa-bbc1-6c6601b7d330)
+
+Video: https://github.com/sharaievPn/background-foreground-separation/assets/116552240/bec49ec0-3b58-4ce7-a3ae-df0bb64da656
+
+
+
 
