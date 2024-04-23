@@ -15,13 +15,23 @@ As one can see, there are some black lines along the horizontal axes. Such diffr
 
 ## Idea Behind Background Approximation
 
-To obtaine the best background approximation model it is appropriate to constuct a rank-1 approximation of the matrix. Since singular values are in descending order, then the product of first singular value and its corresponding singular vectors forms a matrix each column of which represents dominant pattern for each particular frame. Taking into account that background is static, then the dominant pattern formed by the product of the first singular value and its corresponding singular vectors represents models background.
+To obtaine the best background approximation model it is appropriate to constuct a rank-1 approximation of the matrix. Since singular values are in descending order, then the product of first singular value and its corresponding singular vectors forms a matrix each column of which represents dominant pattern for each particular frame. Taking into account that background is static, then the dominant pattern formed by the product of the first singular value and its corresponding singular vectors represents models background. Such low-rank approximation may be obtained by Randomized SVD
 
 ## Example of Background Model
 
 ![low_rank_representation](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/6f0e43b1-4d4f-4a2e-815d-14f9758173fb)
 
 It is clearly visible that black lines representing the movements are excluded.
+
+## Results
+The dataset including video samples was constructed by the team. Here are the axample of background subtraction.
+![ts_outdoor_woman_25_10_50_480_270_frame](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/ff663141-ab34-4131-8d2c-726a7a80921d)
+![ts_outdoor_woman_25_10_50_480_270_background](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/fd6dd192-b8f9-4a66-8554-64d3fbe4d198)
+![ts_outdoor_woman_50_10_50_960_540_foreground](https://github.com/sharaievPn/background-foreground-separation/assets/116552240/ca4d5349-3201-490d-b4a0-e2c6e2b9df86)
+
+Composed Video:
+https://github.com/sharaievPn/background-foreground-separation/assets/116552240/96d6369f-2228-4d2b-a662-93f1c1089e4f
+
 
 ## Usage
 
