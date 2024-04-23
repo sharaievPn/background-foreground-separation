@@ -148,7 +148,7 @@ class Separator:
         if self.__matrix_name is not None:
             if self.__check_matrix(self.__matrix_name):
                 self.__matrix = np.load('./video_matrix/' + self.__matrix_name)
-                self.__perform_svd(True, 1, 2, 10)
+                self.__perform_svd(True, 1, 1, 10)
                 return
 
         if video_name is not None:
@@ -161,7 +161,7 @@ class Separator:
                 else:
                     self.__construct_matrix_from_video()
 
-                self.__perform_svd(True, 1, 2, 10)
+                self.__perform_svd(True, 1, 1, 10)
                 return
 
         raise NameErrorException("There aren't any materials found")
@@ -199,8 +199,7 @@ class Separator:
         """
         print('Started matrix construction...')
         frames = []
-        duration = int(self.__clip.duration)
-        for i in range(self.__fps * duration):
+        for i in range(self.__fps * self.__duration):
             frame = self.__clip.get_frame(i / float(self.__fps))
             frame = self.__rgb2gray(frame)
             frame = cv.resize(frame, (self.__width, self.__height))
